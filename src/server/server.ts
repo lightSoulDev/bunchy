@@ -5,6 +5,7 @@ import { Handler, HttpMethod, RequestRouter } from "../types";
 import { responseProxy } from "../response";
 import { MethodNotAllowedError, NotFoundError } from "../router/errors";
 import { MiddlewareChain } from "./chain";
+import { BunchyRequest } from "../request";
 
 export default function bunchy() {
   return Bunchy.instance;
@@ -112,9 +113,9 @@ class Bunchy implements RequestRouter {
     const that = this;
     return Bun.serve({
       port,
-      async fetch(req: Request): Promise<Response> {
-        const { searchParams, pathname } = new URL(req.url);
-        const method = req.method as HttpMethod;
+      async fetch(_req: Request): Promise<Response> {
+        const { searchParams, pathname } = new URL(_req.url);
+        const method = _req.method as HttpMethod;
         const res = responseProxy();
 
         const resolver = that.resolve(method, pathname);
@@ -123,8 +124,14 @@ class Bunchy implements RequestRouter {
             status: 404,
           });
         }
-
         const { routePath, middlewares, requestHandler, params } = resolver.result!;
+        const req = {
+          ..._req,
+          routePath,
+          params,
+          searchParams,
+        } as BunchyRequest;
+
         if (middlewares.length) {
           const chain = new MiddlewareChain(req, res, middlewares);
           chain.next();

@@ -302,6 +302,8 @@ export class RouteTreeNode {
                 ? [...params[n.path.slice(2)], path]
                 : [path];
 
+              routePath = PATH.join(routePath, "*");
+
               value = n.value;
               return { value, params, routePath, allMiddlewares };
 

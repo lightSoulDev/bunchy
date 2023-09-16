@@ -17,7 +17,6 @@ router.use((req, res, next) => {
 });
 
 router.get("/", (req, res) => {
-  console.log(req);
   return res!.setStatus(200).json({ message: "[GET] /" });
 });
 router.post("/", (req, res) => {
@@ -60,6 +59,7 @@ router.get("/test/:id/handle/:name", (req, res) => {
 
 router.get("/static/*", (req, res) => {
   console.log("[GET]", "/static/*");
+  console.log(req);
 });
 
 // console.log(router.resolve("GET", "/test/1/handle/lightsoul"));

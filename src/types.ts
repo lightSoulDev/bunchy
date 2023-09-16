@@ -1,3 +1,4 @@
+import { BunchyRequest } from "./request";
 import BunchyResponse from "./response";
 
 export const HttpMethods = new Set([
@@ -14,11 +15,6 @@ export const HttpMethods = new Set([
 
 type SetType<S> = S extends Set<infer T> ? T : never;
 export type HttpMethod = SetType<typeof HttpMethods>;
-
-export type BunchyRequest = Request & {
-  routePath?: string;
-  params?: Record<string, string[]>;
-};
 
 export type Handler = (
   req: BunchyRequest | null,

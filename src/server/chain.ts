@@ -1,5 +1,6 @@
+import { BunchyRequest } from "../request";
 import BunchyResponse from "../response";
-import { BunchyRequest, Handler } from "../types";
+import { Handler } from "../types";
 
 export class MiddlewareChain {
   private calls: Array<() => boolean> = [];
