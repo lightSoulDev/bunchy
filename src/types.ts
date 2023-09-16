@@ -41,3 +41,8 @@ export interface SSLOptions {
   dhParamsFile?: string;
   lowMemoryMode?: boolean;
 }
+
+export type HandleWrapper = {
+  pre?: (req: BunchyRequest) => any,
+  post?: (req: BunchyRequest, res: BunchyResponse, data?:any) => void
+};

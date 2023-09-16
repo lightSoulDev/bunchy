@@ -1,7 +1,7 @@
 import { Errorlike, Server } from "bun";
 import RadixRouter from "../router/router";
 import { RouteTreeNode } from "../tree/tree";
-import { Handler, HttpMethod, RequestRouter, SSLOptions } from "../types";
+import { HandleWrapper, Handler, HttpMethod, RequestRouter, SSLOptions } from "../types";
 import { responseProxy } from "../response";
 import { MethodNotAllowedError, NotFoundError } from "../router/errors";
 import { MiddlewareChain } from "./chain";
@@ -96,6 +96,33 @@ class Bunchy implements RequestRouter {
   }
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // =-                W R A P P E R                -=
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+  private _wrapper: HandleWrapper | null = null;
+
+  /**
+   * Set wrapper
+   * @param wrapper
+   * @example
+   * server.wrapper({
+   *  pre: (req) => {
+   *   // do something
+   * 
+   *  return { data: "some data" };
+   * },
+   * post: (req, res, data) => {
+   *  // do something
+   * });  
+   */
+  wrapper(wrapper: HandleWrapper): void {
+    if (this._wrapper) {
+      throw new Error("Wrapper is already set");
+    }
+    this._wrapper = wrapper;
+  }
+
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // =-             B U N   S E R V E R             -=
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   private _routeTree: RouteTreeNode | null = null;
@@ -159,9 +186,15 @@ class Bunchy implements RequestRouter {
           });
         }
 
+        let wrapperData: any = null;
+        if (that._wrapper) {
+          wrapperData = that._wrapper.pre?.(req);
+        }
         const response = requestHandler.apply(that, [req, res]);
         if (response instanceof Promise) {
           await response;
+
+          that._wrapper?.post?.(req, res, wrapperData);
           if (res.isReady) {
             return res.response!;
           }
