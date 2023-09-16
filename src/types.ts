@@ -17,8 +17,8 @@ type SetType<S> = S extends Set<infer T> ? T : never;
 export type HttpMethod = SetType<typeof HttpMethods>;
 
 export type Handler = (
-  req: BunchyRequest | null,
-  res: BunchyResponse | null,
+  req: BunchyRequest,
+  res: BunchyResponse,
   next?: (err?: Error) => void
 ) => void | Promise<void>;
 
