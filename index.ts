@@ -160,8 +160,8 @@ router.get("/test/:id/handle", (req, res) => {
   console.log("[GET]", "/test/:id/handle");
 });
 
-router.get("/test/:id/handle/:id", (req, res) => {
-  console.log("[GET]", "/test/:id/handle/:id");
+router.get("/test/:id/handle/:name", (req, res) => {
+  console.log("[GET]", "/test/:id/handle/:name");
 });
 
 router.get("/static/*", (req, res) => {
@@ -170,6 +170,9 @@ router.get("/static/*", (req, res) => {
 
 router.attach();
 router.print();
+
+console.log(router.resolve("GET", "/test/1/handle/lightsoul"));
+console.log(router.resolve("GET", "/test/1/handle/lightsoul/test"));
 
 // test("/");
 // test("/test");

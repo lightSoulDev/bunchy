@@ -1,6 +1,7 @@
 import { RouteTreeNode } from "../tree/tree";
 import { Handler, HttpMethod, RequestRouter } from "../types";
 import * as PATH from "path";
+import { MethodNotAllowedError, NotFoundError } from "./errors";
 
 export interface RouteHandlers {
   middlewares: Array<Handler>;
@@ -11,6 +12,13 @@ export interface RouteHandlers {
 
 export type RouterMap = {
   [key: string]: RouteHandlers;
+};
+
+export type RouteResolver = {
+  routePath: string;
+  middlewares: Handler[];
+  requestHandler: Handler;
+  params: Record<string, string[]>;
 };
 
 export default class RadixRouter implements RequestRouter {
@@ -129,8 +137,17 @@ export default class RadixRouter implements RequestRouter {
     this.delegate("OPTIONS", path, handlers);
   }
 
-  resolve(path: string): any | null {
-    // return this._radixTree.dig(path);
+  resolve(method: HttpMethod, path: string): RouteResolver {
+    const node = this._tree.get(path);
+    if (!node || !node.value) throw NotFoundError;
+    if (!node.value?.requestHandlers[method]) throw MethodNotAllowedError;
+
+    return {
+      routePath: node.routePath,
+      middlewares: node.allMiddlewares,
+      requestHandler: node.value.requestHandlers[method]!,
+      params: node.params,
+    };
   }
 
   print(): void {
