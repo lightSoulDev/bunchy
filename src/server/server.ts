@@ -1,7 +1,7 @@
-import { Server } from "bun";
+import { Errorlike, Server } from "bun";
 import RadixRouter from "../router/router";
 import { RouteTreeNode } from "../tree/tree";
-import { Handler, HttpMethod, RequestRouter } from "../types";
+import { Handler, HttpMethod, RequestRouter, SSLOptions } from "../types";
 import { responseProxy } from "../response";
 import { MethodNotAllowedError, NotFoundError } from "../router/errors";
 import { MiddlewareChain } from "./chain";
@@ -100,7 +100,7 @@ class Bunchy implements RequestRouter {
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   private _routeTree: RouteTreeNode | null = null;
 
-  serve(port: number, options: any): Server {
+  serve(port: number, hostname?: string, options?: SSLOptions): Server {
     this._routeTree = new RouteTreeNode();
     const map = this.rootRouter.attach();
     for (const path in map) {
@@ -113,6 +113,14 @@ class Bunchy implements RequestRouter {
     const that = this;
     return Bun.serve({
       port,
+      hostname,
+      keyFile: options?.keyFile,
+      certFile: options?.certFile,
+      passphrase: options?.passphrase,
+      caFile: options?.caFile,
+      dhParamsFile: options?.dhParamsFile,
+      lowMemoryMode: options?.lowMemoryMode,
+      development: process.env.SERVER_ENV !== "production",
       async fetch(_req: Request): Promise<Response> {
         const { searchParams, pathname } = new URL(_req.url);
         const method = _req.method as HttpMethod;
@@ -120,9 +128,7 @@ class Bunchy implements RequestRouter {
 
         const resolver = that.resolve(method, pathname);
         if (resolver.error) {
-          return new Response(resolver.error.message, {
-            status: 404,
-          });
+          throw resolver.error;
         }
         const { routePath, middlewares, requestHandler, params } = resolver.result!;
         const req = {
@@ -169,6 +175,11 @@ class Bunchy implements RequestRouter {
 
         return res.response!;
       },
+      async error(err: Errorlike): Promise<Response> {
+        return new Response(err.message, {
+          status: 500,
+        });
+      },
     });
   }
 
@@ -176,7 +187,7 @@ class Bunchy implements RequestRouter {
     if (!this._routeTree) throw new Error("Route tree is not initialized");
 
     const node = this._routeTree.get(path);
-    if (!node) return { result: null, error: NotFoundError };
+    if (!node.value) return { result: null, error: NotFoundError };
 
     return {
       result: {

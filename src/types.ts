@@ -32,3 +32,13 @@ export interface RequestRouter {
   patch: RequestHandler;
   options: RequestHandler;
 }
+
+export interface SSLOptions {
+  keyFile: string;
+  certFile: string;
+  passphrase?: string;
+  caFile?: string;
+  dhParamsFile?: string;
+
+  lowMemoryMode?: boolean;
+}

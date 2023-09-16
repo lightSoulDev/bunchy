@@ -95,7 +95,7 @@ router.use("/foo", fooRouter);
 const server = bunchy();
 server.use("/test", router);
 
-server.serve(3001, {});
+server.serve(3001);
 
 // test("/");
 // test("/test");
