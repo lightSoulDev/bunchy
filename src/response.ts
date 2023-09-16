@@ -72,3 +72,16 @@ export default class ServerResponse {
     return !!this.response;
   }
 }
+
+export function responseProxy(): ServerResponse {
+  const serverResponse = new ServerResponse();
+  return new Proxy(serverResponse, {
+    get(target, prop, receiver) {
+      if ((target.isReady && prop === "json") || prop === "send") {
+        throw new Error("response is already ready");
+      } else {
+        return Reflect.get(target, prop, receiver);
+      }
+    },
+  });
+}

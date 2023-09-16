@@ -18,6 +18,8 @@ export type HttpMethod = SetType<typeof HttpMethods>;
 export type Handler = (
   req: Request | null,
   res: ServerResponse | null,
+  params?: Record<string, string[]>,
+  routePath?: string,
   next?: (err?: Error) => void
 ) => void | Promise<void>;
 

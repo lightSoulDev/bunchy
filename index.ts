@@ -168,11 +168,42 @@ router.get("/static/*", (req, res) => {
   console.log("[GET]", "/static/*");
 });
 
-router.attach();
-router.print();
+// console.log(router.resolve("GET", "/test/1/handle/lightsoul"));
+// console.log(router.resolve("GET", "/test/1/handle/lightsoul/test"));
 
-console.log(router.resolve("GET", "/test/1/handle/lightsoul"));
-console.log(router.resolve("GET", "/test/1/handle/lightsoul/test"));
+const fooRouter = new RadixRouter();
+fooRouter.use((req, res) => {
+  console.log("middleware foo 1");
+});
+
+fooRouter.use((req, res) => {
+  console.log("middleware foo 2");
+});
+
+fooRouter.get("/", (req, res) => {
+  console.log("[GET]", "/foo");
+});
+
+fooRouter.post("/", (req, res) => {
+  console.log("[POST]", "/foo");
+});
+
+fooRouter.get("/bar", (req, res) => {
+  console.log("[GET]", "/foo/bar");
+});
+
+fooRouter.post("/bar", (req, res) => {
+  console.log("[POST]", "/foo/bar");
+});
+
+router.use("/foo", fooRouter);
+
+const testRouter = new RadixRouter();
+testRouter.put("/test/foo/bar", (req, res) => {});
+testRouter.use("/test", router);
+
+testRouter.attach("/root");
+testRouter.print();
 
 // test("/");
 // test("/test");

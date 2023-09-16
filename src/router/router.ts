@@ -14,24 +14,16 @@ export type RouterMap = {
   [key: string]: RouteHandlers;
 };
 
-export type RouteResolver = {
-  routePath: string;
-  middlewares: Handler[];
-  requestHandler: Handler;
-  params: Record<string, string[]>;
-};
-
 export default class RadixRouter implements RequestRouter {
-  private _globalPath: string;
   private _map: RouterMap;
-  private _tree: RouteTreeNode;
+  private _attachedPath: string = "/";
+  // private _tree: RouteTreeNode;
   private _attached: boolean = false;
   // private _middlewares: Array<{ path: string; middleware: Handler }> = [];
 
   constructor() {
-    this._globalPath = "/";
     this._map = {};
-    this._tree = new RouteTreeNode();
+    // this._tree = new RouteTreeNode();
   }
 
   private delegate(method: HttpMethod, path: string, handlers: Handler[]): void {
@@ -105,10 +97,28 @@ export default class RadixRouter implements RequestRouter {
       path = arg1;
       if (typeof arg2 === "function") {
         middleware = arg2 as Handler;
-        this.register(PATH.join(this._globalPath, path), [middleware]);
+        this.register(path, [middleware]);
       } else {
         router = arg2 as RadixRouter;
-        // attach router
+        let map = router.attach(path);
+        for (const route in map) {
+          const routeHandlers = map[route];
+          const newPath = PATH.join(this._attachedPath, path, route);
+          if (this._map[newPath]) {
+            console.log(
+              `Route ${newPath} already exists; New router conflicts with existing router`
+            );
+            this._map[newPath].middlewares.push(...routeHandlers.middlewares);
+            for (const method in routeHandlers.requestHandlers) {
+              if (this._map[newPath].requestHandlers[method as HttpMethod]) {
+                throw new Error(`Route ${method} ${newPath} already exists`);
+              }
+              this._map[newPath].requestHandlers[method as HttpMethod] =
+                routeHandlers.requestHandlers[method as HttpMethod];
+            }
+          }
+          this._map[newPath] = routeHandlers;
+        }
       }
     }
   }
@@ -137,29 +147,26 @@ export default class RadixRouter implements RequestRouter {
     this.delegate("OPTIONS", path, handlers);
   }
 
-  resolve(method: HttpMethod, path: string): RouteResolver {
-    const node = this._tree.get(path);
-    if (!node || !node.value) throw NotFoundError;
-    if (!node.value?.requestHandlers[method]) throw MethodNotAllowedError;
-
-    return {
-      routePath: node.routePath,
-      middlewares: node.allMiddlewares,
-      requestHandler: node.value.requestHandlers[method]!,
-      params: node.params,
-    };
+  resolve(path: string): RouteHandlers {
+    if (!this._map[path]) throw NotFoundError;
+    return this._map[path];
   }
 
   print(): void {
     console.log(this._map);
-    this._tree.print();
+    // this._tree.print();
   }
 
-  attach() {
-    this._attached = true;
-    for (const path in this._map) {
-      const routeHandlers = this._map[path];
-      this._tree.set(path, routeHandlers);
+  attach(path?: string): RouterMap {
+    if (this._attached) {
+      throw new Error(`Router is already attached`);
     }
+
+    if (path) {
+      this._attachedPath = path;
+    }
+
+    this._attached = true;
+    return this._map;
   }
 }
