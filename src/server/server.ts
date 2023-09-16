@@ -186,15 +186,12 @@ class Bunchy implements RequestRouter {
           });
         }
 
-        let wrapperData: any = null;
-        if (that._wrapper) {
-          wrapperData = that._wrapper.pre?.(req);
-        }
+        let wrapperData: any = that._wrapper?.pre?.(req) || null;
         const response = requestHandler.apply(that, [req, res]);
         if (response instanceof Promise) {
           await response;
 
-          that._wrapper?.post?.(req, res, wrapperData);
+          that._wrapper?.post(req, res, wrapperData);
           if (res.isReady) {
             return res.response!;
           }

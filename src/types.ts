@@ -44,5 +44,5 @@ export interface SSLOptions {
 
 export type HandleWrapper = {
   pre?: (req: BunchyRequest) => any,
-  post?: (req: BunchyRequest, res: BunchyResponse, data?:any) => void
+  post: (req: BunchyRequest, res: BunchyResponse, data?:any) => void
 };
