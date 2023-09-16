@@ -39,6 +39,5 @@ export interface SSLOptions {
   passphrase?: string;
   caFile?: string;
   dhParamsFile?: string;
-
   lowMemoryMode?: boolean;
 }
