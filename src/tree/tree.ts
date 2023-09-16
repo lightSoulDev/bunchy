@@ -22,14 +22,13 @@ const enum CharCode {
 
 export class RouteTreeNode {
   constructor(
-    private path = "",
-    private indices = "",
-    private wildChild = false,
-    private type = SegmentType.Static,
-    private priority = 0,
-    private children: RouteTreeNode[] = [],
-
-    private value: RouteHandlers | null = null
+    public path = "",
+    public indices = "",
+    public wildChild = false,
+    public type = SegmentType.Static,
+    public priority = 0,
+    public children: RouteTreeNode[] = [],
+    public value: RouteHandlers | null = null
   ) {}
 
   private addChild(child: RouteTreeNode): RouteTreeNode {

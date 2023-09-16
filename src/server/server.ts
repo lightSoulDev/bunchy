@@ -45,7 +45,7 @@ class Bunchy implements RequestRouter {
   // =-    R O O T   R O U T E R   M E T H O D S    -=
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-  private rootRouter = new RadixRouter();
+  private _rootRouter = new RadixRouter();
 
   /**
    * Add middleware on global level
@@ -68,31 +68,31 @@ class Bunchy implements RequestRouter {
   use(path: string, router: RadixRouter): void;
 
   use(arg1: string | Handler, arg2?: Handler | RadixRouter): void {
-    this.rootRouter.use(arg1 as any, arg2 as any);
+    this._rootRouter.use(arg1 as any, arg2 as any);
   }
 
   get(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.get(path, ...handlers);
+    this._rootRouter.get(path, ...handlers);
   }
 
   post(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.post(path, ...handlers);
+    this._rootRouter.post(path, ...handlers);
   }
 
   put(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.put(path, ...handlers);
+    this._rootRouter.put(path, ...handlers);
   }
 
   delete(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.delete(path, ...handlers);
+    this._rootRouter.delete(path, ...handlers);
   }
 
   patch(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.patch(path, ...handlers);
+    this._rootRouter.patch(path, ...handlers);
   }
 
   options(path: string, ...handlers: Handler[]): void {
-    this.rootRouter.options(path, ...handlers);
+    this._rootRouter.options(path, ...handlers);
   }
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -129,7 +129,7 @@ class Bunchy implements RequestRouter {
 
   serve(port: number, hostname?: string, options?: SSLOptions): Server {
     this._routeTree = new RouteTreeNode();
-    const map = this.rootRouter.attach();
+    const map = this._rootRouter.attach();
     for (const path in map) {
       const routeHandlers = map[path];
       this._routeTree.set(path, routeHandlers);
