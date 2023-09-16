@@ -55,13 +55,17 @@ export class RouteTreeNode {
    * @param value
    * @returns
    */
-  set(path: string, value: RouteHandlers): RouteTreeNode {
+  set(path: string, value: RouteHandlers | null): RouteTreeNode {
     let n: RouteTreeNode = this;
     const fullPath = path;
     n.priority++;
 
     if (path.endsWith("/*")) {
       path = path + "wildcard";
+    }
+
+    if (path.endsWith("/")) {
+      path = path.slice(0, -1);
     }
 
     // Empty tree
@@ -203,7 +207,6 @@ export class RouteTreeNode {
           ? "\x1b[32m" + JSON.stringify(Object.keys(node.value.requestHandlers)) + "\x1b[0m"
           : "";
       let prefix = "";
-
       if (node.path !== "/" || depth === 0) {
         let text = indent + "\x1b[34m" + node.path + "\x1b[0m";
         console.log(text, middlewares + requestHandlers);
@@ -211,7 +214,10 @@ export class RouteTreeNode {
 
       if (node.children.length > 0) {
         nodes.push(
-          ...node.children.map((node) => ({ node, depth: node.path !== "/" ? depth + 1 : depth }))
+          ...node.children.map((node) => ({
+            node,
+            depth: depth + 1,
+          }))
         );
       }
     }

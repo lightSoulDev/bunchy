@@ -103,7 +103,10 @@ export default class RadixRouter implements RequestRouter {
         let map = router.attach(path);
         for (const route in map) {
           const routeHandlers = map[route];
-          const newPath = PATH.join(this._attachedPath, path, route);
+          let newPath = PATH.join(this._attachedPath, path, route);
+          if (newPath.endsWith("/")) {
+            newPath = newPath.slice(0, -1);
+          }
           if (this._map[newPath]) {
             console.log(
               `Route ${newPath} already exists; New router conflicts with existing router`

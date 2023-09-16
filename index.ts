@@ -1,133 +1,28 @@
 import { ServerResponse } from "http";
 import RadixRouter, { RouteHandlers } from "./src/router/router";
 import { RouteTreeNode } from "./src/tree/tree";
-
-const tree = new RouteTreeNode();
-
-tree.set("/", {
-  middlewares: [
-    (req, res) => {
-      console.log("middleware 1");
-    },
-    (req, res) => {
-      console.log("middleware 2");
-    },
-    (req, res) => {
-      console.log("middleware 3");
-    },
-  ],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Hello World" });
-      console.log("[GET]", "/");
-    },
-    POST: (req, res) => {
-      // res.setStatus(200).json({ message: "Hello World" });
-      console.log("[POST]", "/");
-    },
-  },
-});
-
-tree.set("/test", {
-  middlewares: [
-    (req, res) => {
-      console.log("middleware test 1");
-    },
-    (req, res) => {
-      console.log("middleware test 2");
-    },
-  ],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[GET]", "/test");
-    },
-    POST: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[POST]", "/test");
-    },
-  },
-});
-
-tree.set("/test/handle", {
-  middlewares: [
-    (req, res) => {
-      console.log("middleware test/handle 1");
-    },
-    (req, res) => {
-      console.log("middleware test/handle 2");
-    },
-  ],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[GET]", "/test/handle");
-    },
-  },
-});
-
-tree.set("/test/:id/handle", {
-  middlewares: [
-    (req, res) => {
-      console.log("middleware test/id/handle 1");
-    },
-  ],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[GET]", "/test/:id/handle");
-    },
-  },
-});
-
-tree.set("/test/:id/handle/:id", {
-  middlewares: [],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[GET]", "/test/:id/handle/:id");
-    },
-  },
-});
-
-tree.set("/static/*", {
-  middlewares: [],
-  requestHandlers: {
-    GET: (req, res) => {
-      // res.setStatus(200).json({ message: "Test World" });
-      console.log("[GET]", "/static/*");
-    },
-  },
-});
-
-function test(path: string) {
-  let a = tree.get(path);
-  for (const middleware of a.value?.middlewares ?? []) {
-    // call middleware
-    middleware(null, null);
-  }
-  const requestHandler = a.value?.requestHandlers.GET;
-  requestHandler!(null, null);
-  console.log(a);
-}
+import bunchy from "./src/server/server";
 
 const router = new RadixRouter();
 
-router.use((req, res) => {
+router.use((req, res, params, path, next) => {
   console.log("middleware 1");
+  next!();
 });
-router.use((req, res) => {
+router.use((req, res, params, path, next) => {
   console.log("middleware 2");
+  next!();
 });
-router.use((req, res) => {
+router.use((req, res, params, path, next) => {
   console.log("middleware 3");
+  next!();
 });
 
 router.get("/", (req, res) => {
-  console.log("[GET]", "/");
+  return res!.setStatus(200).json({ message: "[GET] /" });
 });
 router.post("/", (req, res) => {
-  console.log("[POST]", "/");
+  return res!.setStatus(200).json({ message: "[POST] /" });
 });
 
 router.use("/test", (req, res) => {
@@ -198,12 +93,10 @@ fooRouter.post("/bar", (req, res) => {
 
 router.use("/foo", fooRouter);
 
-const testRouter = new RadixRouter();
-testRouter.put("/test/foo/bar", (req, res) => {});
-testRouter.use("/test", router);
+const server = bunchy();
+server.use("/test", router);
 
-testRouter.attach("/root");
-testRouter.print();
+server.serve(3001, {});
 
 // test("/");
 // test("/test");

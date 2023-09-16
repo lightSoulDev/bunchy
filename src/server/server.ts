@@ -170,13 +170,12 @@ class Bunchy implements RequestRouter {
 
     const node = this._routeTree.get(path);
     if (!node) return { result: null, error: NotFoundError };
-    if (!node.value) return { result: null, error: NotFoundError };
 
     return {
       result: {
         routePath: node.routePath,
         middlewares: node.allMiddlewares ?? [],
-        requestHandler: node.value.requestHandlers[method] ?? null,
+        requestHandler: node.value?.requestHandlers[method] ?? null,
         params: node.params ?? {},
       },
       error: null,
