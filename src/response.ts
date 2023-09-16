@@ -1,4 +1,4 @@
-export default class ServerResponse {
+export default class BunchyResponse {
   private _response: Response | null = null;
   private _options: ResponseInit = {};
 
@@ -14,7 +14,7 @@ export default class ServerResponse {
     this._response = new Response(undefined, this._options);
   }
 
-  setStatus(status: number): ServerResponse {
+  setStatus(status: number): BunchyResponse {
     this._options.status = status;
     return this;
   }
@@ -27,7 +27,7 @@ export default class ServerResponse {
     this._options.status = status;
   }
 
-  setStatusText(statusText: string): ServerResponse {
+  setStatusText(statusText: string): BunchyResponse {
     this._options.statusText = statusText;
     return this;
   }
@@ -40,7 +40,7 @@ export default class ServerResponse {
     this._options.statusText = statusText;
   }
 
-  setHeader(key: string, value: string): ServerResponse {
+  setHeader(key: string, value: string): BunchyResponse {
     if (!key || !value) {
       throw new Error("header key and value are required");
     }
@@ -52,7 +52,7 @@ export default class ServerResponse {
     return this;
   }
 
-  setHeaders(headers: Record<string, string>): ServerResponse {
+  setHeaders(headers: Record<string, string>): BunchyResponse {
     this._options.headers = headers;
     return this;
   }
@@ -73,8 +73,8 @@ export default class ServerResponse {
   }
 }
 
-export function responseProxy(): ServerResponse {
-  const serverResponse = new ServerResponse();
+export function responseProxy(): BunchyResponse {
+  const serverResponse = new BunchyResponse();
   return new Proxy(serverResponse, {
     get(target, prop, receiver) {
       if ((target.isReady && prop === "json") || prop === "send") {

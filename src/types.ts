@@ -1,4 +1,4 @@
-import ServerResponse from "./response";
+import BunchyResponse from "./response";
 
 export const HttpMethods = new Set([
   "GET",
@@ -15,11 +15,14 @@ export const HttpMethods = new Set([
 type SetType<S> = S extends Set<infer T> ? T : never;
 export type HttpMethod = SetType<typeof HttpMethods>;
 
+export type BunchyRequest = Request & {
+  routePath?: string;
+  params?: Record<string, string[]>;
+};
+
 export type Handler = (
-  req: Request | null,
-  res: ServerResponse | null,
-  params?: Record<string, string[]>,
-  routePath?: string,
+  req: BunchyRequest | null,
+  res: BunchyResponse | null,
   next?: (err?: Error) => void
 ) => void | Promise<void>;
 

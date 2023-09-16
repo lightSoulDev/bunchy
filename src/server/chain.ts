@@ -1,20 +1,14 @@
-import ServerResponse from "../response";
-import { Handler } from "../types";
+import BunchyResponse from "../response";
+import { BunchyRequest, Handler } from "../types";
 
 export class MiddlewareChain {
   private calls: Array<() => boolean> = [];
   private isReady = false;
 
-  constructor(
-    req: Request,
-    res: ServerResponse,
-    params: Record<string, string[]>,
-    routePath: string,
-    middlewares: Handler[]
-  ) {
+  constructor(req: BunchyRequest, res: BunchyResponse, middlewares: Handler[]) {
     this.calls = middlewares.map((middleware) => {
       return () => {
-        middleware(req, res, params, routePath, this.next);
+        middleware(req, res, this.next);
         return this.isReady;
       };
     });

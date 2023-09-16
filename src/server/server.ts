@@ -126,7 +126,7 @@ class Bunchy implements RequestRouter {
 
         const { routePath, middlewares, requestHandler, params } = resolver.result!;
         if (middlewares.length) {
-          const chain = new MiddlewareChain(req, res, params, routePath, middlewares);
+          const chain = new MiddlewareChain(req, res, middlewares);
           chain.next();
 
           if (res.isReady) {
@@ -146,7 +146,7 @@ class Bunchy implements RequestRouter {
           });
         }
 
-        const response = requestHandler.apply(that, [req, res, params, routePath]);
+        const response = requestHandler.apply(that, [req, res]);
         if (response instanceof Promise) {
           await response;
           if (res.isReady) {

@@ -1,24 +1,23 @@
-import { ServerResponse } from "http";
 import RadixRouter, { RouteHandlers } from "./src/router/router";
-import { RouteTreeNode } from "./src/tree/tree";
 import bunchy from "./src/server/server";
 
 const router = new RadixRouter();
 
-router.use((req, res, params, path, next) => {
+router.use((req, res, next) => {
   console.log("middleware 1");
   next!();
 });
-router.use((req, res, params, path, next) => {
+router.use((req, res, next) => {
   console.log("middleware 2");
   next!();
 });
-router.use((req, res, params, path, next) => {
+router.use((req, res, next) => {
   console.log("middleware 3");
   next!();
 });
 
 router.get("/", (req, res) => {
+  console.log(req);
   return res!.setStatus(200).json({ message: "[GET] /" });
 });
 router.post("/", (req, res) => {
