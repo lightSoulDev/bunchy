@@ -239,7 +239,7 @@ export class RouteTreeNode {
     const params: Record<string, string[]> = {};
     let n: RouteTreeNode = this;
     let routePath = "/";
-    let allMiddlewares: Handler[] = n.value?.middlewares ?? [];
+    let allMiddlewares: Handler[] = n.value?.middlewares ? [...n.value.middlewares] : [];
 
     walk: while (true) {
       if (path.length > n.path.length) {
