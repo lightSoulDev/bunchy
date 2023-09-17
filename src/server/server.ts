@@ -3,7 +3,7 @@ import RadixRouter from "../router/router";
 import { RouteTreeNode } from "../tree/tree";
 import { HandleWrapper, Handler, HttpMethod, RequestRouter, SSLOptions } from "../types";
 import { responseProxy } from "../response";
-import { MethodNotAllowedError, NotFoundError } from "../router/errors";
+import { ErrorHandler, MethodNotAllowedError, NotFoundError } from "../error";
 import { MiddlewareChain } from "./chain";
 import { BunchyRequest } from "../request";
 
@@ -103,23 +103,52 @@ class Bunchy implements RequestRouter {
 
   /**
    * Set wrapper
-   * @param wrapper
    * @example
    * server.wrapper({
    *  pre: (req) => {
    *   // do something
-   *
    *  return { data: "some data" };
    * },
    * post: (req, res, data) => {
    *  // do something
    * });
    */
-  wrapper(wrapper: HandleWrapper): void {
-    if (this._wrapper) {
+  wrapper(wrapper: HandleWrapper, force = false): void {
+    if (!force && this._wrapper) {
       throw new Error("Wrapper is already set");
     }
     this._wrapper = wrapper;
+  }
+
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // =-         E R R O R   H A N D L I N G         -=
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  private _errorHandler: ErrorHandler | null = null;
+
+  /**
+   * Set error handler
+   * @example
+   * server.errorHandler(async (req, err) => {
+   *  return new Response(err.message, { status: err.code });
+   * });
+   */
+  errorHandler(errorHandler: ErrorHandler, force = false): void {
+    if (!force && this._errorHandler) {
+      throw new Error("Error handler is already set");
+    }
+    this._errorHandler = errorHandler;
+  }
+
+  private async handleError(req: BunchyRequest, err: Errorlike): Promise<Response> {
+    const data = JSON.parse(err.message);
+    if (typeof data !== "object" || !data.code || !data.message) {
+      throw err;
+    }
+    if (!this._errorHandler) {
+      return new Response(err.message, { status: data.code });
+    }
+
+    return await this._errorHandler(req, data);
   }
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -155,7 +184,7 @@ class Bunchy implements RequestRouter {
 
         const resolver = that.resolve(method, pathname);
         if (!resolver.result) {
-          return await that.handleError(resolver.error!);
+          return await that.handleError(_req as BunchyRequest, resolver.error!);
         }
         const { routePath, middlewares, requestHandler, params } = resolver.result!;
         const req = {
@@ -174,7 +203,7 @@ class Bunchy implements RequestRouter {
           }
 
           if (chain.length) {
-            return await that.handleError(new Error("Middleware chain was not completed"));
+            return await that.handleError(req, new Error("Middleware chain was not completed"));
           }
         }
 
@@ -183,7 +212,7 @@ class Bunchy implements RequestRouter {
         }
 
         if (!requestHandler) {
-          return await that.handleError(new Error("Request handler is not defined"));
+          return await that.handleError(req, new Error("Request handler is not defined"));
         }
 
         let wrapperData: any = that._wrapper?.pre?.(req) || null;
@@ -204,18 +233,6 @@ class Bunchy implements RequestRouter {
         return res.response!;
       },
     });
-  }
-
-  private async handleError(err: Errorlike): Promise<Response> {
-    const data = JSON.parse(err.message);
-    if (typeof data !== "object" || !data.code || !data.message) {
-      throw err;
-    } else {
-      return new Response(data.message, {
-        status: data.code,
-        statusText: data.key ?? data.code.toString(),
-      });
-    }
   }
 
   private resolve(method: HttpMethod, path: string): RouteResolver {

@@ -1,7 +1,7 @@
 import { RouteTreeNode } from "../tree/tree";
 import { Handler, HttpMethod, RequestRouter } from "../types";
 import * as PATH from "path";
-import { MethodNotAllowedError, NotFoundError } from "./errors";
+import { MethodNotAllowedError, NotFoundError } from "../error";
 
 export interface RouteHandlers {
   middlewares: Array<Handler>;
