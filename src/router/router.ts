@@ -41,11 +41,12 @@ export default class Router implements RequestRouter {
     middlewares: Handler[],
     routeHandler?: { method: HttpMethod; requestHandler: Handler }
   ): void {
-    if (!this._map[path])
+    if (!this._map[path]) {
       this._map[path] = {
         middlewares: [],
         requestHandlers: {},
       };
+    }
     this._map[path].middlewares.push(...middlewares);
     if (routeHandler) {
       if (this._map[path].requestHandlers[routeHandler.method]) {

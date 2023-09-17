@@ -1,17 +1,15 @@
 const express = require('express')
 const app = express()
-const port = 3001
 
-app.use('/test', (req, res, next) => {
-    console.log('Time:', Date.now())
-    next()
-})
+const server = express();
 
+server.use((req, res, next) => {
+  console.log("middleware 1");
+  next();
+});
 
-// app.get('/test', (req, res) => {
-//   res.send('Hello World!')
-// })
+server.get("/test", (req, res) => {
+  res.json({ message: "Hello World" });
+});
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+server.listen(3001);

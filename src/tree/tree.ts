@@ -63,7 +63,7 @@ export class RouteTreeNode {
       path = path + "wildcard";
     }
 
-    if (path.endsWith("/")) {
+    if (path.length > 1 && path.endsWith("/")) {
       path = path.slice(0, -1);
     }
 
