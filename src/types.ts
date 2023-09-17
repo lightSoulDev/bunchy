@@ -22,6 +22,12 @@ export type Handler = (
   next?: (err?: Error) => void
 ) => void | Promise<void>;
 
+export type ErrorHandler = (
+  req: BunchyRequest,
+  res: BunchyResponse,
+  err: BunchyError
+) => void | Promise<void>;
+
 export type RequestHandler = (path: string, ...handlers: Handler[]) => void;
 
 export interface RequestRouter {

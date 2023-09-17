@@ -1,7 +1,6 @@
-import { RouteTreeNode } from "../tree/tree";
 import { Handler, HttpMethod, RequestRouter } from "../types";
 import * as PATH from "path";
-import { MethodNotAllowedError, NotFoundError } from "../error";
+import { NotFoundError } from "../error";
 
 export interface RouteHandlers {
   middlewares: Array<Handler>;
@@ -14,7 +13,7 @@ export type RouterMap = {
   [key: string]: RouteHandlers;
 };
 
-export default class RadixRouter implements RequestRouter {
+export default class Router implements RequestRouter {
   private _map: RouterMap;
   private _attachedPath: string = "/";
   // private _tree: RouteTreeNode;
@@ -74,16 +73,16 @@ export default class RadixRouter implements RequestRouter {
    * @param path
    * @param router
    */
-  use(path: string, router: RadixRouter): void;
+  use(path: string, router: Router): void;
 
-  use(arg1: string | Handler, arg2?: Handler | RadixRouter): void {
+  use(arg1: string | Handler, arg2?: Handler | Router): void {
     if (this._attached) {
       throw new Error(`Cannot add middleware after router is attached`);
     }
 
     let path: string;
     let middleware: Handler;
-    let router: RadixRouter;
+    let router: Router;
 
     if (typeof arg1 !== "string") {
       path = "/";
@@ -99,7 +98,7 @@ export default class RadixRouter implements RequestRouter {
         middleware = arg2 as Handler;
         this.register(path, [middleware]);
       } else {
-        router = arg2 as RadixRouter;
+        router = arg2 as Router;
         let map = router.attach(path);
         for (const route in map) {
           const routeHandlers = map[route];

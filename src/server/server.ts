@@ -1,9 +1,16 @@
 import { Errorlike, Server } from "bun";
-import RadixRouter from "../router/router";
+import Router from "../router/router";
 import { RouteTreeNode } from "../tree/tree";
-import { HandleWrapper, Handler, HttpMethod, RequestRouter, SSLOptions } from "../types";
+import {
+  HandleWrapper,
+  Handler,
+  HttpMethod,
+  RequestRouter,
+  SSLOptions,
+  ErrorHandler,
+} from "../types";
 import { responseProxy } from "../response";
-import { ErrorHandler, MethodNotAllowedError, NotFoundError } from "../error";
+import { MethodNotAllowedError, NotFoundError } from "../error";
 import { MiddlewareChain } from "./chain";
 import { BunchyRequest } from "../request";
 
@@ -45,7 +52,7 @@ class Bunchy implements RequestRouter {
   // =-    R O O T   R O U T E R   M E T H O D S    -=
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-  private _rootRouter = new RadixRouter();
+  private _rootRouter = new Router();
 
   /**
    * Add middleware on global level
@@ -65,9 +72,9 @@ class Bunchy implements RequestRouter {
    * @param path
    * @param router
    */
-  use(path: string, router: RadixRouter): void;
+  use(path: string, router: Router): void;
 
-  use(arg1: string | Handler, arg2?: Handler | RadixRouter): void {
+  use(arg1: string | Handler, arg2?: Handler | Router): void {
     this._rootRouter.use(arg1 as any, arg2 as any);
   }
 
@@ -145,10 +152,17 @@ class Bunchy implements RequestRouter {
       throw err;
     }
     if (!this._errorHandler) {
-      return new Response(err.message, { status: data.code });
+      return new Response(data.message, { status: data.code });
     }
 
-    return await this._errorHandler(req, data);
+    const res = responseProxy();
+
+    await this._errorHandler(req, res, data);
+    if (!res.isReady) {
+      throw err;
+    }
+
+    return res.response!;
   }
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

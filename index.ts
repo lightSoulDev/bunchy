@@ -1,7 +1,7 @@
-import RadixRouter, { RouteHandlers } from "./src/router/router";
+import Router from "./src/router/router";
 import bunchy from "./src/server/server";
 
-const router = new RadixRouter();
+const router = new Router();
 
 router.use((req, res, next) => {
   console.log("middleware 1");
@@ -65,7 +65,7 @@ router.get("/static/*", (req, res) => {
 // console.log(router.resolve("GET", "/test/1/handle/lightsoul"));
 // console.log(router.resolve("GET", "/test/1/handle/lightsoul/test"));
 
-const fooRouter = new RadixRouter();
+const fooRouter = new Router();
 fooRouter.use((req, res) => {
   console.log("middleware foo 1");
 });
@@ -94,7 +94,9 @@ router.use("/foo", fooRouter);
 
 const server = bunchy();
 server.use("/test", router);
-
+server.errorHandler((req, res, error) => {
+  res!.setStatus(error.code || 500).json(error);
+});
 server.serve(3001);
 
 // test("/");
@@ -130,7 +132,7 @@ server.serve(3001);
 
 // tree.print();
 
-// const router = new RadixRouter();
+// const router = new Router();
 
 // router.get("/test", (req, res) => {
 //   const { searchParams, pathname } = new URL(req!.url);

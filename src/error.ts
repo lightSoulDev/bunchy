@@ -1,4 +1,3 @@
-import { BunchyRequest } from "./request";
 import { BunchyError } from "./types";
 
 export const composeError = ({ code, message, key }: BunchyError): string => {
@@ -18,5 +17,3 @@ export const MethodNotAllowedError = composeError({
   code: 405,
   message: "route not found",
 } as const);
-
-export type ErrorHandler = (req: BunchyRequest, err: BunchyError) => Promise<Response>;
