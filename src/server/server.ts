@@ -100,7 +100,7 @@ class Bunchy implements RequestRouter {
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
   private _wrapper: HandleWrapper | null = null;
-
+  
   /**
    * Set wrapper
    * @param wrapper
@@ -174,16 +174,16 @@ class Bunchy implements RequestRouter {
           }
 
           if (chain.length) {
-            return new Response("Middleware chain was stuck", {
-              status: 500,
-            });
+            throw new Error("Middleware chain was not completed");
           }
         }
 
+        if (resolver.error) {
+          throw resolver.error;
+        }
+
         if (!requestHandler) {
-          return new Response("Method not allowed", {
-            status: 405,
-          });
+          throw new Error("Request handler is not defined");
         }
 
         let wrapperData: any = that._wrapper?.pre?.(req) || null;
@@ -198,9 +198,7 @@ class Bunchy implements RequestRouter {
         }
 
         if (!res.isReady) {
-          return new Response("Response was not sent", {
-            status: 500,
-          });
+          throw new Error("Response is not ready");
         }
 
         return res.response!;
@@ -217,7 +215,9 @@ class Bunchy implements RequestRouter {
     if (!this._routeTree) throw new Error("Route tree is not initialized");
 
     const node = this._routeTree.get(path);
+    let error = null;
     if (!node.value) return { result: null, error: NotFoundError };
+    if (!node.value.requestHandlers[method]) error = MethodNotAllowedError;
 
     return {
       result: {
@@ -226,7 +226,7 @@ class Bunchy implements RequestRouter {
         requestHandler: node.value?.requestHandlers[method] ?? null,
         params: node.params ?? {},
       },
-      error: null,
+      error: error,
     };
   }
 }
