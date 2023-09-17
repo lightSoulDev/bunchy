@@ -77,7 +77,7 @@ export function responseProxy(): BunchyResponse {
   const serverResponse = new BunchyResponse();
   return new Proxy(serverResponse, {
     get(target, prop, receiver) {
-      if ((target.isReady && prop === "json") || prop === "send") {
+      if (target.isReady && (prop === "json" || prop === "send")) {
         throw new Error("response is already ready");
       } else {
         return Reflect.get(target, prop, receiver);
