@@ -100,7 +100,7 @@ class Bunchy implements RequestRouter {
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
   private _wrapper: HandleWrapper | null = null;
-  
+
   /**
    * Set wrapper
    * @param wrapper
@@ -108,12 +108,12 @@ class Bunchy implements RequestRouter {
    * server.wrapper({
    *  pre: (req) => {
    *   // do something
-   * 
+   *
    *  return { data: "some data" };
    * },
    * post: (req, res, data) => {
    *  // do something
-   * });  
+   * });
    */
   wrapper(wrapper: HandleWrapper): void {
     if (this._wrapper) {
@@ -154,8 +154,8 @@ class Bunchy implements RequestRouter {
         const res = responseProxy();
 
         const resolver = that.resolve(method, pathname);
-        if (resolver.error) {
-          throw resolver.error;
+        if (!resolver.result) {
+          return await that.handleError(resolver.error!);
         }
         const { routePath, middlewares, requestHandler, params } = resolver.result!;
         const req = {
@@ -174,7 +174,7 @@ class Bunchy implements RequestRouter {
           }
 
           if (chain.length) {
-            throw new Error("Middleware chain was not completed");
+            return await that.handleError(new Error("Middleware chain was not completed"));
           }
         }
 
@@ -183,7 +183,7 @@ class Bunchy implements RequestRouter {
         }
 
         if (!requestHandler) {
-          throw new Error("Request handler is not defined");
+          return await that.handleError(new Error("Request handler is not defined"));
         }
 
         let wrapperData: any = that._wrapper?.pre?.(req) || null;
@@ -203,12 +203,19 @@ class Bunchy implements RequestRouter {
 
         return res.response!;
       },
-      async error(err: Errorlike): Promise<Response> {
-        return new Response(err.message, {
-          status: 500,
-        });
-      },
     });
+  }
+
+  private async handleError(err: Errorlike): Promise<Response> {
+    const data = JSON.parse(err.message);
+    if (typeof data !== "object" || !data.code || !data.message) {
+      throw err;
+    } else {
+      return new Response(data.message, {
+        status: data.code,
+        statusText: data.key ?? data.code.toString(),
+      });
+    }
   }
 
   private resolve(method: HttpMethod, path: string): RouteResolver {
@@ -216,8 +223,9 @@ class Bunchy implements RequestRouter {
 
     const node = this._routeTree.get(path);
     let error = null;
-    if (!node.value) return { result: null, error: NotFoundError };
-    if (!node.value.requestHandlers[method]) error = MethodNotAllowedError;
+
+    if (!node.value) return { result: null, error: new Error(NotFoundError) };
+    if (!node.value.requestHandlers[method]) error = new Error(MethodNotAllowedError);
 
     return {
       result: {
