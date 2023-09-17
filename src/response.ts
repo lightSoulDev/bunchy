@@ -14,7 +14,7 @@ export default class BunchyResponse {
     this._response = new Response(undefined, this._options);
   }
 
-  setStatus(status: number): BunchyResponse {
+  withStatus(status: number): BunchyResponse {
     this._options.status = status;
     return this;
   }
@@ -40,7 +40,7 @@ export default class BunchyResponse {
     this._options.statusText = statusText;
   }
 
-  setHeader(key: string, value: string): BunchyResponse {
+  withHeader(key: string, value: string): BunchyResponse {
     if (!key || !value) {
       throw new Error("header key and value are required");
     }
@@ -52,7 +52,7 @@ export default class BunchyResponse {
     return this;
   }
 
-  setHeaders(headers: Record<string, string>): BunchyResponse {
+  withHeaders(headers: Record<string, string>): BunchyResponse {
     this._options.headers = headers;
     return this;
   }
